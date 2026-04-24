@@ -1,0 +1,19 @@
+# 環境變數（含機密）
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Alembic 產生的 DB（本地）
+*.db
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
