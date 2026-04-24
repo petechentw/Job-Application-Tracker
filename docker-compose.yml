@@ -45,5 +45,13 @@ services:
       - ./backend:/app
     command: python worker/main.py
 
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
 volumes:
   postgres_data:
