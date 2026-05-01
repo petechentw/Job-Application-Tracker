@@ -66,21 +66,21 @@ export default function JobDetailModal({ job, resumeName, onClose }: Props) {
               <p className="text-xs text-gray-400 mb-3">AI Analysis</p>
               <div className="space-y-3">
                 {/* Summary */}
-                {analysis.summary && (
+                {analysis.summary ? (
                   <div className="bg-blue-50 border border-blue-100 rounded px-4 py-3 text-sm text-blue-800">
-                    {analysis.summary as string}
+                    {String(analysis.summary)}
                   </div>
-                )}
+                ) : null}
                 <div className="grid grid-cols-2 gap-3">
                   {/* Seniority */}
-                  {analysis.seniority_level && (
+                  {analysis.seniority_level ? (
                     <div className="bg-gray-50 rounded border border-gray-200 px-4 py-3">
                       <p className="text-xs text-gray-400 mb-1">Seniority</p>
                       <p className="text-sm font-medium text-gray-800 capitalize">
-                        {analysis.seniority_level as string}
+                        {String(analysis.seniority_level)}
                       </p>
                     </div>
-                  )}
+                  ) : null}
                 </div>
                 {/* Required skills */}
                 {Array.isArray(analysis.skills) && analysis.skills.length > 0 && (

@@ -6,6 +6,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ApplicationsPage from "./pages/ApplicationsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import ResumesPage from "./pages/ResumesPage";
+import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
           <Route path="/resumes" element={<ProtectedRoute><ResumesPage /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

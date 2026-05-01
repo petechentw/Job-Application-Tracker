@@ -17,6 +17,7 @@ export default function Navbar() {
         <Link to="/" className="text-sm text-gray-600 hover:text-gray-900">Applications</Link>
         <Link to="/resumes" className="text-sm text-gray-600 hover:text-gray-900">Resumes</Link>
         <Link to="/analytics" className="text-sm text-gray-600 hover:text-gray-900">Analytics</Link>
+        <Link to="/profile" className="text-sm text-gray-600 hover:text-gray-900">Profile</Link>
       </div>
       <div className="flex items-center gap-3">
         <span className="text-sm text-gray-500">{user?.email}</span>

@@ -19,3 +19,5 @@ class User(Base):
 
     resumes: Mapped[list["Resume"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     jobs: Mapped[list["Job"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    work_experiences: Mapped[list["WorkExperience"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    educations: Mapped[list["Education"]] = relationship(back_populates="user", cascade="all, delete-orphan")

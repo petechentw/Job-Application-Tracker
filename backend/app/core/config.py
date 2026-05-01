@@ -21,5 +21,8 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str = ""
 
+    # Local file storage (used when S3_BUCKET_NAME is empty)
+    local_upload_path: str = "/app/uploads"
+
 
 settings = Settings()

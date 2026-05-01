@@ -5,8 +5,9 @@ import boto3
 
 from app.core.config import settings
 
-# If S3_BUCKET_NAME is not set, fall back to local file storage
-LOCAL_STORAGE_PATH = Path("/app/uploads")
+# If S3_BUCKET_NAME is not set, fall back to local file storage.
+# LOCAL_UPLOAD_PATH can be overridden via env var (useful for tests).
+LOCAL_STORAGE_PATH = Path(settings.local_upload_path)
 
 _client = None
 

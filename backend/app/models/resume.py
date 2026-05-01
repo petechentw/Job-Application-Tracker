@@ -1,7 +1,9 @@
 import uuid
 from datetime import datetime, timezone
+from typing import List, Optional
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -18,5 +20,15 @@ class Resume(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
+    # Active / History
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    # AI parsed fields
+    parsed_skills: Mapped[Optional[List]] = mapped_column(JSONB, nullable=True)
+    parsed_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    tags: Mapped[Optional[List]] = mapped_column(JSONB, nullable=True)
+    parse_status: Mapped[str] = mapped_column(String, default="pending", nullable=False)
+    # parse_status: pending | processing | done | failed
+
     user: Mapped["User"] = relationship(back_populates="resumes")
-    jobs: Mapped[list["Job"]] = relationship(back_populates="resume")
+    jobs: Mapped[List["Job"]] = relationship(back_populates="resume")

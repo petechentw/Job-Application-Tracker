@@ -1,4 +1,5 @@
 import os
+import tempfile
 
 import pytest
 from fastapi.testclient import TestClient
@@ -18,6 +19,10 @@ TEST_DATABASE_URL = os.getenv(
 engine = create_engine(TEST_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# Redirect local file uploads to a writable temp directory so tests don't
+# attempt to write to /app/uploads (the Docker container path).
+_TMP_UPLOAD_DIR = tempfile.mkdtemp()
+
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_db():
@@ -25,6 +30,17 @@ def setup_db():
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(autouse=True)
+def patch_local_storage(tmp_path, monkeypatch):
+    """
+    Override the s3 service's LOCAL_STORAGE_PATH so resume uploads
+    write to a temporary directory instead of /app/uploads.
+    """
+    from pathlib import Path
+    import app.services.s3 as s3_module
+    monkeypatch.setattr(s3_module, "LOCAL_STORAGE_PATH", Path(_TMP_UPLOAD_DIR))
 
 
 @pytest.fixture()
