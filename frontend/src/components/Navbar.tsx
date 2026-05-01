@@ -15,6 +15,7 @@ export default function Navbar() {
       <div className="flex items-center gap-6">
         <span className="font-semibold text-gray-900">Job Tracker</span>
         <Link to="/" className="text-sm text-gray-600 hover:text-gray-900">Applications</Link>
+        <Link to="/resumes" className="text-sm text-gray-600 hover:text-gray-900">Resumes</Link>
         <Link to="/analytics" className="text-sm text-gray-600 hover:text-gray-900">Analytics</Link>
       </div>
       <div className="flex items-center gap-3">

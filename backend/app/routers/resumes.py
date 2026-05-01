@@ -1,6 +1,8 @@
 import uuid
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -8,7 +10,7 @@ from app.models.resume import Resume
 from app.models.user import User
 from app.routers.deps import get_current_user
 from app.schemas.resume import ResumeResponse, ResumeURLResponse
-from app.services.s3 import generate_presigned_url, upload_file
+from app.services.s3 import LOCAL_STORAGE_PATH, generate_presigned_url, upload_file, _use_local
 
 router = APIRouter(prefix="/resumes", tags=["resumes"])
 
@@ -63,3 +65,14 @@ def get_resume_url(
 
     url = generate_presigned_url(resume.s3_key)
     return ResumeURLResponse(url=url)
+
+
+@router.get("/download/{s3_key:path}")
+def download_local(s3_key: str):
+    """Local development only: serve uploaded PDF directly."""
+    if not _use_local():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not available in production")
+    file_path = LOCAL_STORAGE_PATH / s3_key
+    if not file_path.exists():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+    return FileResponse(file_path, media_type="application/pdf")

@@ -1,8 +1,18 @@
+import os
+from pathlib import Path
+
 import boto3
 
 from app.core.config import settings
 
+# If S3_BUCKET_NAME is not set, fall back to local file storage
+LOCAL_STORAGE_PATH = Path("/app/uploads")
+
 _client = None
+
+
+def _use_local() -> bool:
+    return not settings.s3_bucket_name
 
 
 def get_s3_client():
@@ -18,6 +28,12 @@ def get_s3_client():
 
 
 def upload_file(file_bytes: bytes, s3_key: str, content_type: str = "application/pdf") -> None:
+    if _use_local():
+        dest = LOCAL_STORAGE_PATH / s3_key
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(file_bytes)
+        return
+
     client = get_s3_client()
     client.put_object(
         Bucket=settings.s3_bucket_name,
@@ -28,6 +44,10 @@ def upload_file(file_bytes: bytes, s3_key: str, content_type: str = "application
 
 
 def generate_presigned_url(s3_key: str, expires_in: int = 3600) -> str:
+    if _use_local():
+        # Return a local download endpoint instead of a presigned URL
+        return f"/resumes/download/{s3_key}"
+
     client = get_s3_client()
     return client.generate_presigned_url(
         "get_object",

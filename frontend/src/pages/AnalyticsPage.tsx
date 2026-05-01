@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Analytics, getAnalytics } from "../api/analytics";
+import type { Analytics } from "../api/analytics";
+import { getAnalytics } from "../api/analytics";
 import Navbar from "../components/Navbar";
 
 export default function AnalyticsPage() {
