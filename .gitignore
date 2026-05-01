@@ -20,3 +20,6 @@ venv/
 
 # Claude Code
 .claude/
+
+# Design files
+system-design.svg
