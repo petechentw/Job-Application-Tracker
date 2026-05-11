@@ -5,13 +5,14 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFi
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db, SessionLocal
 from app.models.resume import Resume
 from app.models.user import User
 from app.routers.deps import get_current_user
 from app.schemas.resume import ResumeResponse, ResumeURLResponse
 from app.services.s3 import LOCAL_STORAGE_PATH, _use_local, generate_presigned_url, upload_file
-from app.services.resume_parser import parse_resume_pdf
+from app.services.ai import parse_resume_pdf
 
 router = APIRouter(prefix="/resumes", tags=["resumes"])
 
@@ -86,16 +87,11 @@ async def upload_resume(
     db.commit()
     db.refresh(resume)
 
-    # Trigger AI parsing in background (no-op if OpenAI key not set)
-    if settings_has_openai():
+    # Trigger AI parsing in background (no-op if Groq key not set)
+    if settings.groq_api_key:
         background_tasks.add_task(_parse_resume_background, resume.id, file_bytes)
 
     return resume
-
-
-def settings_has_openai() -> bool:
-    from app.core.config import settings
-    return bool(settings.openai_api_key)
 
 
 @router.get("", response_model=list[ResumeResponse])

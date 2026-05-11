@@ -18,8 +18,8 @@ class Settings(BaseSettings):
     s3_bucket_name: str = ""
     sqs_queue_url: str = ""
 
-    # OpenAI
-    openai_api_key: str = ""
+    # Groq (free tier, OpenAI-compatible — used for JD analysis and fit scoring)
+    groq_api_key: str = ""
 
     # Local file storage (used when S3_BUCKET_NAME is empty)
     local_upload_path: str = "/app/uploads"

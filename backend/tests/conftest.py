@@ -9,11 +9,11 @@ from sqlalchemy.orm import sessionmaker
 from app.core.database import Base, get_db
 from app.main import app
 
-# Uses the GitHub Actions PostgreSQL service in CI.
-# Override locally by setting the TEST_DATABASE_URL environment variable.
+# Uses a dedicated test database so tests never touch the dev database.
+# CI overrides this via the TEST_DATABASE_URL environment variable.
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
-    "postgresql://jobtracker:jobtracker@localhost:5433/jobtracker",
+    "postgresql://jobtracker:jobtracker@localhost:5433/jobtracker_test",
 )
 
 engine = create_engine(TEST_DATABASE_URL)

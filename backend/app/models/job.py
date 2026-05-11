@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -30,6 +30,10 @@ class Job(Base):
     jd_analysis: Mapped[Optional[Dict]] = mapped_column(JSONB, nullable=True)
     analysis_status: Mapped[str] = mapped_column(String, nullable=False, default="pending")
     # analysis_status: pending | processing | done | failed
+
+    # 0-100 fit score comparing JD required skills vs resume parsed_skills.
+    # Null until analysis completes or no resume was attached.
+    fit_score: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     user: Mapped["User"] = relationship(back_populates="jobs")
     resume: Mapped[Optional["Resume"]] = relationship(back_populates="jobs")

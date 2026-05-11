@@ -1,19 +1,29 @@
+"""
+SQS Worker — polls for JD analysis jobs and processes them with Groq AI.
+
+Flow:
+  1. Receive message from SQS (contains job_id)
+  2. Load job + attached resume from DB
+  3. Call Groq to analyse the JD (and score against resume skills if available)
+  4. Save results back to DB
+  5. Delete the SQS message on success
+"""
+
 import json
 import logging
 import time
 
 import boto3
-from openai import OpenAI
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.database import SessionLocal
 from app.models.job import Job
+from app.models.resume import Resume
+from app.services.ai import analyze_jd
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
-
-openai_client = OpenAI(api_key=settings.openai_api_key)
 
 sqs = boto3.client(
     "sqs",
@@ -21,32 +31,6 @@ sqs = boto3.client(
     aws_access_key_id=settings.aws_access_key_id,
     aws_secret_access_key=settings.aws_secret_access_key,
 )
-
-SYSTEM_PROMPT = """You are a job description analyst. Given a job description, extract:
-1. required_skills: list of technical and soft skills required
-2. nice_to_have_skills: list of optional/preferred skills
-3. seniority_level: one of "junior", "mid", "senior", "lead", "unknown"
-4. summary: a 2-sentence summary of the role
-
-Respond ONLY with valid JSON matching this schema:
-{
-  "skills": ["skill1", "skill2"],
-  "nice_to_have_skills": ["skill1"],
-  "seniority_level": "mid",
-  "summary": "..."
-}"""
-
-
-def analyze_jd(jd_text: str) -> dict:
-    response = openai_client.chat.completions.create(
-        model="gpt-4o",
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": jd_text},
-        ],
-    )
-    return json.loads(response.choices[0].message.content)
 
 
 def process_message(body: dict, db: Session) -> None:
@@ -65,10 +49,28 @@ def process_message(body: dict, db: Session) -> None:
     db.commit()
 
     try:
-        result = analyze_jd(job.jd_text)
+        # Load resume skills if a resume is attached
+        resume_skills = None
+        if job.resume_id:
+            resume = db.get(Resume, job.resume_id)
+            if resume and resume.parsed_skills:
+                resume_skills = resume.parsed_skills
+
+        # Single Groq call: analyse JD + compute fit score if resume skills exist
+        result = analyze_jd(job.jd_text, resume_skills=resume_skills)
+
         job.jd_analysis = result
         job.analysis_status = "done"
+
+        # fit_score and fit_reason come directly from the AI response
+        if "fit_score" in result and result["fit_score"] is not None:
+            job.fit_score = int(result["fit_score"])
+            log.info(f"Fit score for job {job_id}: {job.fit_score}/100 — {result.get('fit_reason', '')}")
+        else:
+            log.info(f"No fit score returned for job {job_id} (no resume skills)")
+
         log.info(f"Done: job {job_id}")
+
     except Exception as e:
         job.analysis_status = "failed"
         log.error(f"Failed to analyse job {job_id}: {e}")
@@ -83,7 +85,7 @@ def run() -> None:
             response = sqs.receive_message(
                 QueueUrl=settings.sqs_queue_url,
                 MaxNumberOfMessages=5,
-                WaitTimeSeconds=10,  # long polling
+                WaitTimeSeconds=10,  # long polling — reduces empty-receive API calls
             )
             messages = response.get("Messages", [])
 

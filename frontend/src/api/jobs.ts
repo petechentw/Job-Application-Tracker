@@ -12,6 +12,8 @@ export interface Job {
   jd_text: string | null;
   jd_analysis: Record<string, unknown> | null;
   analysis_status: "pending" | "processing" | "done" | "failed";
+  // 0-100 resume-to-JD fit score; null until analysis completes
+  fit_score: number | null;
 }
 
 export interface JobCreate {

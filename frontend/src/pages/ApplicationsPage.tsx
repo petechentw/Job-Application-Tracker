@@ -7,13 +7,30 @@ import Navbar from "../components/Navbar";
 import JobDetailModal from "../components/JobDetailModal";
 
 const STATUS_COLORS: Record<string, string> = {
-  applied: "bg-blue-100 text-blue-700",
+  applied:   "bg-blue-100 text-blue-700",
   interview: "bg-yellow-100 text-yellow-700",
-  offer: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
+  offer:     "bg-green-100 text-green-700",
+  rejected:  "bg-red-100 text-red-700",
 };
 
 const STATUS_OPTIONS = ["applied", "interview", "offer", "rejected"] as const;
+
+/** Return a colour class based on the 0-100 fit score. */
+function fitScoreColor(score: number): string {
+  if (score >= 75) return "bg-green-100 text-green-700";
+  if (score >= 50) return "bg-yellow-100 text-yellow-700";
+  return "bg-red-100 text-red-600";
+}
+
+/** Small badge showing the numeric fit score. */
+function FitScoreBadge({ score }: { score: number | null }) {
+  if (score === null) return <span className="text-xs text-gray-400">—</span>;
+  return (
+    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${fitScoreColor(score)}`}>
+      {score}%
+    </span>
+  );
+}
 
 export default function ApplicationsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -48,11 +65,11 @@ export default function ApplicationsPage() {
     setSubmitting(true);
     try {
       await createJob({
-        company: form.company,
-        role: form.role,
-        platform: form.platform || undefined,
-        jd_text: form.jd_text || undefined,
-        resume_id: form.resume_id || undefined,
+        company:   form.company,
+        role:      form.role,
+        platform:  form.platform   || undefined,
+        jd_text:   form.jd_text   || undefined,
+        resume_id: form.resume_id  || undefined,
       });
       setForm({ company: "", role: "", platform: "", jd_text: "", resume_id: "" });
       setShowForm(false);
@@ -64,7 +81,7 @@ export default function ApplicationsPage() {
 
   const handleStatusChange = async (id: string, status: Job["status"]) => {
     await updateJob(id, { status });
-    setJobs((prev) => prev.map((j) => j.id === id ? { ...j, status } : j));
+    setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, status } : j)));
   };
 
   const handleDelete = async (id: string) => {
@@ -82,7 +99,7 @@ export default function ApplicationsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Applications</h1>
           <button
@@ -93,6 +110,7 @@ export default function ApplicationsPage() {
           </button>
         </div>
 
+        {/* ── Create form ── */}
         {showForm && (
           <form onSubmit={handleCreate} className="bg-white border border-gray-200 rounded-lg p-6 mb-6 space-y-4">
             <h2 className="font-medium text-gray-900">New application</h2>
@@ -140,7 +158,10 @@ export default function ApplicationsPage() {
             </div>
             <div>
               <label className="block text-sm text-gray-700 mb-1">
-                Job description <span className="text-gray-400">(optional — triggers AI analysis)</span>
+                Job description{" "}
+                <span className="text-gray-400 font-normal">
+                  (optional — triggers AI analysis + fit score)
+                </span>
               </label>
               <textarea
                 value={form.jd_text}
@@ -168,6 +189,7 @@ export default function ApplicationsPage() {
           </form>
         )}
 
+        {/* ── Table ── */}
         {loading ? (
           <p className="text-gray-500 text-sm">Loading...</p>
         ) : jobs.length === 0 ? (
@@ -181,7 +203,8 @@ export default function ApplicationsPage() {
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Role</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Resume</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Analysis</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Fit Score</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">AI</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -204,11 +227,16 @@ export default function ApplicationsPage() {
                         {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </td>
+                    {/* AI Fit Score */}
+                    <td className="px-4 py-3">
+                      <FitScoreBadge score={job.fit_score} />
+                    </td>
+                    {/* Analysis status */}
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-1 rounded ${
-                        job.analysis_status === "done" ? "bg-green-100 text-green-700" :
-                        job.analysis_status === "pending" ? "bg-gray-100 text-gray-500" :
-                        job.analysis_status === "processing" ? "bg-yellow-100 text-yellow-700" :
+                        job.analysis_status === "done"       ? "bg-green-100 text-green-700"  :
+                        job.analysis_status === "pending"    ? "bg-gray-100 text-gray-500"    :
+                        job.analysis_status === "processing" ? "bg-yellow-100 text-yellow-700":
                         "bg-red-100 text-red-600"
                       }`}>
                         {job.analysis_status}

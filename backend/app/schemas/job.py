@@ -37,5 +37,7 @@ class JobResponse(BaseModel):
     jd_text: str | None
     jd_analysis: dict[str, Any] | None
     analysis_status: str
+    # 0-100 resume-to-JD fit score; null until analysis completes
+    fit_score: int | None
 
     model_config = {"from_attributes": True}

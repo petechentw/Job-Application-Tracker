@@ -6,6 +6,20 @@ interface Props {
   onClose: () => void;
 }
 
+/** Coloured ring showing the numeric fit score with a label. */
+function FitScoreRing({ score }: { score: number }) {
+  const color =
+    score >= 75 ? "text-green-600 border-green-400" :
+    score >= 50 ? "text-yellow-600 border-yellow-400" :
+                  "text-red-600 border-red-400";
+  return (
+    <div className={`flex flex-col items-center justify-center w-20 h-20 rounded-full border-4 ${color}`}>
+      <span className="text-2xl font-bold leading-none">{score}</span>
+      <span className="text-xs font-medium mt-0.5">/ 100</span>
+    </div>
+  );
+}
+
 export default function JobDetailModal({ job, resumeName, onClose }: Props) {
   const analysis = job.jd_analysis as Record<string, unknown> | null;
 
@@ -18,7 +32,7 @@ export default function JobDetailModal({ job, resumeName, onClose }: Props) {
         className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
+        {/* ── Header ── */}
         <div className="flex items-start justify-between px-6 py-4 border-b border-gray-200">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">{job.company}</h2>
@@ -28,7 +42,7 @@ export default function JobDetailModal({ job, resumeName, onClose }: Props) {
         </div>
 
         <div className="px-6 py-5 space-y-6">
-          {/* Meta */}
+          {/* ── Meta grid ── */}
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <p className="text-gray-400 text-xs mb-1">Platform</p>
@@ -44,13 +58,21 @@ export default function JobDetailModal({ job, resumeName, onClose }: Props) {
             </div>
           </div>
 
-          {/* Resume */}
-          <div>
-            <p className="text-xs text-gray-400 mb-1">Resume used</p>
-            <p className="text-sm text-gray-800">{resumeName}</p>
+          {/* ── Resume + Fit Score side by side ── */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Resume used</p>
+              <p className="text-sm text-gray-800">{resumeName}</p>
+            </div>
+            {job.fit_score !== null && (
+              <div className="flex flex-col items-center gap-1">
+                <FitScoreRing score={job.fit_score} />
+                <p className="text-xs text-gray-400">AI Fit Score</p>
+              </div>
+            )}
           </div>
 
-          {/* JD */}
+          {/* ── Job description ── */}
           {job.jd_text && (
             <div>
               <p className="text-xs text-gray-400 mb-2">Job description</p>
@@ -60,28 +82,29 @@ export default function JobDetailModal({ job, resumeName, onClose }: Props) {
             </div>
           )}
 
-          {/* AI Analysis */}
+          {/* ── AI Analysis ── */}
           {job.analysis_status === "done" && analysis ? (
             <div>
               <p className="text-xs text-gray-400 mb-3">AI Analysis</p>
               <div className="space-y-3">
+
                 {/* Summary */}
                 {analysis.summary ? (
                   <div className="bg-blue-50 border border-blue-100 rounded px-4 py-3 text-sm text-blue-800">
                     {String(analysis.summary)}
                   </div>
                 ) : null}
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Seniority */}
-                  {analysis.seniority_level ? (
-                    <div className="bg-gray-50 rounded border border-gray-200 px-4 py-3">
-                      <p className="text-xs text-gray-400 mb-1">Seniority</p>
-                      <p className="text-sm font-medium text-gray-800 capitalize">
-                        {String(analysis.seniority_level)}
-                      </p>
-                    </div>
-                  ) : null}
-                </div>
+
+                {/* Seniority */}
+                {analysis.seniority_level ? (
+                  <div className="bg-gray-50 rounded border border-gray-200 px-4 py-3 inline-block">
+                    <p className="text-xs text-gray-400 mb-1">Seniority</p>
+                    <p className="text-sm font-medium text-gray-800 capitalize">
+                      {String(analysis.seniority_level)}
+                    </p>
+                  </div>
+                ) : null}
+
                 {/* Required skills */}
                 {Array.isArray(analysis.skills) && analysis.skills.length > 0 && (
                   <div>
@@ -95,6 +118,7 @@ export default function JobDetailModal({ job, resumeName, onClose }: Props) {
                     </div>
                   </div>
                 )}
+
                 {/* Nice to have */}
                 {Array.isArray(analysis.nice_to_have_skills) && analysis.nice_to_have_skills.length > 0 && (
                   <div>
@@ -111,7 +135,7 @@ export default function JobDetailModal({ job, resumeName, onClose }: Props) {
               </div>
             </div>
           ) : job.analysis_status === "pending" || job.analysis_status === "processing" ? (
-            <div className="text-sm text-gray-400 italic">AI analysis in progress...</div>
+            <div className="text-sm text-gray-400 italic">AI analysis in progress…</div>
           ) : null}
         </div>
       </div>
