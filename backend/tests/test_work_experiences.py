@@ -101,7 +101,7 @@ def test_list_ordered_by_order_field(client, auth_headers):
 def test_update_work_experience(client, auth_headers, created_exp):
     """PATCH should only update the supplied fields."""
     res = client.patch(
-        f"/work-experiences/{created_exp['id']}",
+        f"/v1/work-experiences/{created_exp['id']}",
         json={"title": "Senior Engineer", "is_current": True},
         headers=auth_headers,
     )
@@ -116,7 +116,7 @@ def test_update_work_experience(client, auth_headers, created_exp):
 def test_update_nonexistent_returns_404(client, auth_headers):
     """Patching an ID that does not exist should return 404."""
     res = client.patch(
-        "/work-experiences/nonexistent-id",
+        "/v1/work-experiences/nonexistent-id",
         json={"title": "Ghost"},
         headers=auth_headers,
     )
@@ -127,7 +127,7 @@ def test_update_nonexistent_returns_404(client, auth_headers):
 
 def test_delete_work_experience(client, auth_headers, created_exp):
     """Deleting an entry should return 204 and remove it from the list."""
-    res = client.delete(f"/work-experiences/{created_exp['id']}", headers=auth_headers)
+    res = client.delete(f"/v1/work-experiences/{created_exp['id']}", headers=auth_headers)
     assert res.status_code == 204
 
     ids = [e["id"] for e in client.get("/v1/work-experiences", headers=auth_headers).json()]

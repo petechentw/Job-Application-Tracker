@@ -20,7 +20,7 @@ FAKE_PDF = b"%PDF-1.4 fake content"
 def _upload(client, headers, filename="resume.pdf"):
     """Helper: upload a fake PDF and return the response."""
     return client.post(
-        "/resumes",
+        "/v1/resumes",
         files={"file": (filename, io.BytesIO(FAKE_PDF), "application/pdf")},
         headers=headers,
     )
@@ -55,7 +55,7 @@ def test_upload_rejects_non_pdf(client, auth_headers):
     Only application/pdf content type is allowed.
     """
     res = client.post(
-        "/resumes",
+        "/v1/resumes",
         files={"file": ("resume.txt", io.BytesIO(b"not a pdf"), "text/plain")},
         headers=auth_headers,
     )
@@ -65,7 +65,7 @@ def test_upload_rejects_non_pdf(client, auth_headers):
 def test_upload_requires_auth(client):
     """Unauthenticated upload should be rejected with 403."""
     res = client.post(
-        "/resumes",
+        "/v1/resumes",
         files={"file": ("resume.pdf", io.BytesIO(FAKE_PDF), "application/pdf")},
     )
     assert res.status_code == 403
@@ -90,7 +90,7 @@ def test_list_active_comes_before_history(client, auth_headers):
     r2 = _upload(client, auth_headers, "to_archive.pdf").json()
 
     # Move r2 to history
-    client.patch(f"/resumes/{r2['id']}/deactivate", headers=auth_headers)
+    client.patch(f"/v1/resumes/{r2['id']}/deactivate", headers=auth_headers)
 
     resumes = client.get("/v1/resumes", headers=auth_headers).json()
     active_ids = [r["id"] for r in resumes if r["is_active"]]
@@ -114,7 +114,7 @@ def test_deactivate_resume(client, auth_headers, uploaded_resume):
     The resume should still be retrievable in the list.
     """
     res = client.patch(
-        f"/resumes/{uploaded_resume['id']}/deactivate",
+        f"/v1/resumes/{uploaded_resume['id']}/deactivate",
         headers=auth_headers,
     )
     assert res.status_code == 200
@@ -126,10 +126,10 @@ def test_activate_resume(client, auth_headers, uploaded_resume):
     A resume in History can be moved back to Active by calling /activate.
     """
     # First move to history
-    client.patch(f"/resumes/{uploaded_resume['id']}/deactivate", headers=auth_headers)
+    client.patch(f"/v1/resumes/{uploaded_resume['id']}/deactivate", headers=auth_headers)
 
     # Then move back to active
-    res = client.patch(f"/resumes/{uploaded_resume['id']}/activate", headers=auth_headers)
+    res = client.patch(f"/v1/resumes/{uploaded_resume['id']}/activate", headers=auth_headers)
     assert res.status_code == 200
     assert res.json()["is_active"] is True
 
@@ -147,7 +147,7 @@ def test_get_resume_url(client, auth_headers, uploaded_resume):
     Requesting a download URL for an existing resume should return 200
     with a non-empty URL string.
     """
-    res = client.get(f"/resumes/{uploaded_resume['id']}/url", headers=auth_headers)
+    res = client.get(f"/v1/resumes/{uploaded_resume['id']}/url", headers=auth_headers)
     assert res.status_code == 200
     assert res.json()["url"].startswith("/resumes/download/")
 
@@ -165,5 +165,5 @@ def test_get_url_for_another_users_resume_returns_404(client, auth_headers):
     login = client.post("/v1/auth/login", json={"email": "other4@example.com", "password": "pass"})
     other_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
 
-    res = client.get(f"/resumes/{r['id']}/url", headers=other_headers)
+    res = client.get(f"/v1/resumes/{r['id']}/url", headers=other_headers)
     assert res.status_code == 404

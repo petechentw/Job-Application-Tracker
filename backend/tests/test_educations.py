@@ -99,7 +99,7 @@ def test_list_ordered_by_order_field(client, auth_headers):
 def test_update_education(client, auth_headers, created_edu):
     """PATCH should only update the supplied fields, leaving others unchanged."""
     res = client.patch(
-        f"/educations/{created_edu['id']}",
+        f"/v1/educations/{created_edu['id']}",
         json={"degree": "Master", "gpa": "4.0"},
         headers=auth_headers,
     )
@@ -113,7 +113,7 @@ def test_update_education(client, auth_headers, created_edu):
 def test_update_nonexistent_returns_404(client, auth_headers):
     """Patching an ID that does not exist should return 404."""
     res = client.patch(
-        "/educations/nonexistent-id",
+        "/v1/educations/nonexistent-id",
         json={"degree": "PhD"},
         headers=auth_headers,
     )
@@ -124,7 +124,7 @@ def test_update_nonexistent_returns_404(client, auth_headers):
 
 def test_delete_education(client, auth_headers, created_edu):
     """Deleting an entry should return 204 and remove it from the list."""
-    res = client.delete(f"/educations/{created_edu['id']}", headers=auth_headers)
+    res = client.delete(f"/v1/educations/{created_edu['id']}", headers=auth_headers)
     assert res.status_code == 204
 
     ids = [e["id"] for e in client.get("/v1/educations", headers=auth_headers).json()]

@@ -62,7 +62,7 @@ def test_list_jobs_only_own(client, auth_headers):
 # ── get ───────────────────────────────────────────────────────────────────────
 
 def test_get_job(client, auth_headers, created_job):
-    res = client.get(f"/jobs/{created_job['id']}", headers=auth_headers)
+    res = client.get(f"/v1/jobs/{created_job['id']}", headers=auth_headers)
     assert res.status_code == 200
     assert res.json()["id"] == created_job["id"]
 
@@ -76,7 +76,7 @@ def test_get_job_not_found(client, auth_headers):
 
 def test_update_job_status(client, auth_headers, created_job):
     res = client.patch(
-        f"/jobs/{created_job['id']}",
+        f"/v1/jobs/{created_job['id']}",
         json={"status": "interview"},
         headers=auth_headers,
     )
@@ -87,8 +87,8 @@ def test_update_job_status(client, auth_headers, created_job):
 # ── delete ────────────────────────────────────────────────────────────────────
 
 def test_delete_job(client, auth_headers, created_job):
-    res = client.delete(f"/jobs/{created_job['id']}", headers=auth_headers)
+    res = client.delete(f"/v1/jobs/{created_job['id']}", headers=auth_headers)
     assert res.status_code == 204
 
-    res = client.get(f"/jobs/{created_job['id']}", headers=auth_headers)
+    res = client.get(f"/v1/jobs/{created_job['id']}", headers=auth_headers)
     assert res.status_code == 404

@@ -31,7 +31,7 @@ def test_update_profile_basic_fields(client, auth_headers):
     and leave the rest unchanged.
     """
     res = client.patch(
-        "/profile",
+        "/v1/profile",
         json={"full_name": "Jane Doe", "phone": "+1-555-0100"},
         headers=auth_headers,
     )
@@ -46,7 +46,7 @@ def test_update_profile_basic_fields(client, auth_headers):
 def test_update_profile_needs_sponsor(client, auth_headers):
     """Setting needs_sponsor to True should persist correctly."""
     res = client.patch(
-        "/profile",
+        "/v1/profile",
         json={"needs_sponsor": True, "nationality": "Taiwan", "visa_status": "F1"},
         headers=auth_headers,
     )
