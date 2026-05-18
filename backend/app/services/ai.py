@@ -18,14 +18,22 @@ from app.core.config import settings
 
 log = logging.getLogger(__name__)
 
-# Groq uses the OpenAI SDK — just swap the base_url and api_key
-_client = OpenAI(
-    api_key=settings.groq_api_key,
-    base_url="https://api.groq.com/openai/v1",
-)
-
 # Best free Groq model as of 2025 — strong reasoning, fast
 _MODEL = "llama-3.3-70b-versatile"
+
+# Lazy client — only created when first needed so tests that don't call AI
+# can import this module without requiring a GROQ_API_KEY.
+_client: OpenAI | None = None
+
+
+def _get_client() -> OpenAI:
+    global _client
+    if _client is None:
+        _client = OpenAI(
+            api_key=settings.groq_api_key or "no-key",
+            base_url="https://api.groq.com/openai/v1",
+        )
+    return _client
 
 
 # ── JD Analysis + Fit Score ───────────────────────────────────────────────────
@@ -71,7 +79,7 @@ def analyze_jd(jd_text: str, resume_skills: list[str] | None = None) -> dict:
     if resume_skills:
         user_content += f"\n\nCandidate's skills: {', '.join(resume_skills)}"
 
-    response = _client.chat.completions.create(
+    response = _get_client().chat.completions.create(
         model=_MODEL,
         response_format={"type": "json_object"},
         messages=[
@@ -119,7 +127,7 @@ Respond ONLY with valid JSON, no markdown."""
 
 def parse_resume_text(resume_text: str) -> dict:
     """Parse a resume from plain text (extracted from PDF)."""
-    response = _client.chat.completions.create(
+    response = _get_client().chat.completions.create(
         model=_MODEL,
         response_format={"type": "json_object"},
         messages=[
