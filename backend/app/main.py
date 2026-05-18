@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import analytics, auth, educations, interviews, jobs, profile, resumes, work_experiences
 
-app = FastAPI(title="Job Application Tracker", version="0.1.0")
+app = FastAPI(title="Job Application Tracker", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -13,14 +13,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
-app.include_router(jobs.router)
-app.include_router(resumes.router)
-app.include_router(interviews.router)
-app.include_router(analytics.router)
-app.include_router(profile.router)
-app.include_router(work_experiences.router)
-app.include_router(educations.router)
+# ── v1 routers ────────────────────────────────────────────────────────────────
+# All routes are prefixed with /v1 for versioning.
+# When breaking changes are needed, add a /v2 prefix and keep /v1 intact
+# so existing clients don't break.
+app.include_router(auth.router,             prefix="/v1")
+app.include_router(jobs.router,             prefix="/v1")
+app.include_router(resumes.router,          prefix="/v1")
+app.include_router(interviews.router,       prefix="/v1")
+app.include_router(analytics.router,        prefix="/v1")
+app.include_router(profile.router,          prefix="/v1")
+app.include_router(work_experiences.router, prefix="/v1")
+app.include_router(educations.router,       prefix="/v1")
 
 
 @app.get("/health")

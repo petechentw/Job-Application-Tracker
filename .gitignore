@@ -23,3 +23,9 @@ venv/
 
 # Design files
 system-design.svg
+
+# Personal notes / guides (not for public repo)
+AWS_GUIDE.md
+
+# database diagram
+db.pdf
