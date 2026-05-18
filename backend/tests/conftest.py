@@ -71,13 +71,13 @@ def client(db):
 def registered_user(client):
     """Register a test account and return its credentials."""
     payload = {"email": "test@example.com", "password": "testpass123"}
-    client.post("/auth/register", json=payload)
+    client.post("/v1/auth/register", json=payload)
     return payload
 
 
 @pytest.fixture()
 def auth_headers(client, registered_user):
     """Log in and return the Authorization header."""
-    res = client.post("/auth/login", json=registered_user)
+    res = client.post("/v1/auth/login", json=registered_user)
     token = res.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}

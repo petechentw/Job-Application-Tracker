@@ -75,7 +75,7 @@ def test_upload_requires_auth(client):
 
 def test_list_resumes(client, auth_headers, uploaded_resume):
     """Listing resumes should include the uploaded one."""
-    res = client.get("/resumes", headers=auth_headers)
+    res = client.get("/v1/resumes", headers=auth_headers)
     assert res.status_code == 200
     ids = [r["id"] for r in res.json()]
     assert uploaded_resume["id"] in ids
@@ -92,7 +92,7 @@ def test_list_active_comes_before_history(client, auth_headers):
     # Move r2 to history
     client.patch(f"/resumes/{r2['id']}/deactivate", headers=auth_headers)
 
-    resumes = client.get("/resumes", headers=auth_headers).json()
+    resumes = client.get("/v1/resumes", headers=auth_headers).json()
     active_ids = [r["id"] for r in resumes if r["is_active"]]
     history_ids = [r["id"] for r in resumes if not r["is_active"]]
 
@@ -136,7 +136,7 @@ def test_activate_resume(client, auth_headers, uploaded_resume):
 
 def test_deactivate_nonexistent_returns_404(client, auth_headers):
     """Trying to deactivate a resume that doesn't exist should return 404."""
-    res = client.patch("/resumes/nonexistent-id/deactivate", headers=auth_headers)
+    res = client.patch("/v1/resumes/nonexistent-id/deactivate", headers=auth_headers)
     assert res.status_code == 404
 
 
@@ -161,8 +161,8 @@ def test_get_url_for_another_users_resume_returns_404(client, auth_headers):
     r = _upload(client, auth_headers).json()
 
     # Log in as user two
-    client.post("/auth/register", json={"email": "other4@example.com", "password": "pass"})
-    login = client.post("/auth/login", json={"email": "other4@example.com", "password": "pass"})
+    client.post("/v1/auth/register", json={"email": "other4@example.com", "password": "pass"})
+    login = client.post("/v1/auth/login", json={"email": "other4@example.com", "password": "pass"})
     other_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
 
     res = client.get(f"/resumes/{r['id']}/url", headers=other_headers)
